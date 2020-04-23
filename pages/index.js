@@ -14,6 +14,7 @@ import {
   Link,
   Paper,
 } from "@material-ui/core";
+import Loading from "../components/Loading";
 
 const ALL_WORLDS = "ALL_WORLDS";
 const skillTypes = [
@@ -44,6 +45,8 @@ const Index = () => {
   const [currentVocation, setCurrentVocation] = useState(vocations[0]);
   const [dataToDisplay, setDataToDisplay] = useState([]);
   const [cache, setCache] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
   const classes = useStyles();
   const pointsNotLevel =
     currentSkillType === "achievements" || currentSkillType === "loyalty";
@@ -78,6 +81,7 @@ const Index = () => {
         setDataToDisplay(cachedData);
         return;
       }
+      setIsLoading(true);
       console.log("downloading new data....");
       if (currentWorld === ALL_WORLDS) {
         console.log(worlds);
@@ -129,12 +133,14 @@ const Index = () => {
           return prev;
         });
       }
+      setIsLoading(false);
     };
     getHighscores();
   }, [worlds, currentWorld, currentSkillType, currentVocation]);
   return (
     <MaterialUiTheme>
       <CssBaseline />
+      {isLoading && <Loading />}
       <div>
         <div style={{ display: "flex", justifyContent: "space-around" }}>
           <Select
