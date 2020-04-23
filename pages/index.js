@@ -31,7 +31,11 @@ const skillTypes = [
 ];
 const vocations = ["all", "druid", "knight", "paladin", "sorcerer"];
 
-const useStyles = makeStyles({});
+const useStyles = makeStyles({
+  bold: {
+    fontWeight: "bold",
+  },
+});
 
 const Index = () => {
   const [worlds, setWorlds] = useState([]);
@@ -187,9 +191,7 @@ const Index = () => {
             <TableBody>
               {dataToDisplay.slice(0, 300).map((data, i) => (
                 <TableRow key={`${data.name}_${data.level}_${i}`} hover>
-                  <TableCell>
-                    <b>{i + 1}</b>
-                  </TableCell>
+                  <TableCell className={classes.bold}>{i + 1}</TableCell>
                   <TableCell>
                     <Link
                       href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
