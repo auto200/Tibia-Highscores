@@ -49,6 +49,8 @@ const Index = () => {
   const [dataToDisplay, setDataToDisplay] = useState([]);
   const [cache, setCache] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [orderBy, setOrderBy] = useState("level");
+  const [orderDirection, setOrderDirection] = useState("desc");
 
   const tableRef = useRef(null);
 
@@ -85,65 +87,71 @@ const Index = () => {
         console.log("data cached!!");
         setDataToDisplay(cachedData);
         return;
-      } else {
-        setIsLoading(true);
-        console.log("downloading new data....");
-        if (currentWorld === ALL_WORLDS) {
-          console.log(worlds);
-          const promises = worlds.map(({ name }) => {
-            const url = `https://api.tibiadata.com/v2/highscores/${name}/${currentSkillType}/${currentVocation}.json`;
-            return axios.get(url);
-          });
-          const data = await axios.all(promises);
-          console.log("---------");
-          console.log(data);
-          console.log("---------");
-          const allServerHighscores = data
-            .map(({ data }, i) => {
-              const highscores = data.highscores.data;
-
-              if (!Array.isArray(highscores)) return [];
-
-              return highscores.map((char) => {
-                char.server = worlds[i].name;
-                return char;
-              });
-            })
-            .flat()
-            .sort((a, b) => {
-              //propably change this to current filter (ascending/descending)
-              if (a.level > b.level) {
-                return -1;
-              }
-              if (a.level < b.level) {
-                return 1;
-              }
-              return 0;
-            });
-          setDataToDisplay(allServerHighscores);
-          setCache((prev) => {
-            prev[filterId] = allServerHighscores;
-            return prev;
-          });
-        } else {
-          const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
-          const { data } = await axios.get(url);
-          const highscores = data.highscores.data.map((char) => {
-            char.server = data.highscores.world;
-            return char;
-          });
-          setDataToDisplay(highscores);
-          setCache((prev) => {
-            prev[filterId] = highscores;
-            return prev;
-          });
-        }
-        setIsLoading(false);
       }
+
+      let highscores = [];
+      setIsLoading(true);
+      console.log("downloading new data....");
+
+      if (currentWorld === ALL_WORLDS) {
+        console.log(worlds);
+        const promises = worlds.map(({ name }) => {
+          const url = `https://api.tibiadata.com/v2/highscores/${name}/${currentSkillType}/${currentVocation}.json`;
+          return axios.get(url);
+        });
+        const data = await axios.all(promises);
+        console.log("---------");
+        console.log(data);
+        console.log("---------");
+        highscores = data
+          .map(({ data }, i) => {
+            const highscores = data.highscores.data;
+
+            if (!Array.isArray(highscores)) return [];
+
+            return highscores.map((char) => {
+              char.server = worlds[i].name;
+              return char;
+            });
+          })
+          .flat();
+      } else {
+        const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
+        const { data } = await axios.get(url);
+        highscores = data.highscores.data.map((char) => {
+          char.server = data.highscores.world;
+          return char;
+        });
+      }
+      setDataToDisplay(highscores);
+      setCache((prev) => {
+        prev[filterId] = highscores;
+        return prev;
+      });
+      setIsLoading(false);
       tableRef.current.scrollTop = 0;
     };
     getHighscores();
   }, [worlds, currentWorld, currentSkillType, currentVocation]);
+
+  useEffect(() => {
+    let orderedData = [];
+    if (orderDirection === "asc") {
+      orderedData = dataToDisplay.sort((a, b) => {
+        if (a[orderBy] < b[orderBy]) return -1;
+        else if (a[orderBy] > b[orderBy]) return 1;
+        return 0;
+      });
+    } else if (orderDirection === "desc") {
+      orderedData = dataToDisplay.sort((a, b) => {
+        if (a[orderBy] > b[orderBy]) return -1;
+        else if (a[orderBy] < b[orderBy]) return 1;
+        return 0;
+      });
+    }
+    setDataToDisplay(orderedData);
+  }, [dataToDisplay, orderBy, orderDirection]);
+
   return (
     <MaterialUiTheme>
       <CssBaseline />
@@ -245,3 +253,14 @@ const Index = () => {
   );
 };
 export default Index;
+
+// .sort((a, b) => {
+//   //propably change this to current filter (ascending/descending)
+//   if (a.level > b.level) {
+//     return -1;
+//   }
+//   if (a.level < b.level) {
+//     return 1;
+//   }
+//   return 0;
+// });
