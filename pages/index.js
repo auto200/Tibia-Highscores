@@ -39,14 +39,28 @@ const useStyles = makeStyles({
   contianer: {
     maxHeight: "100vh",
   },
+  capitalize: {
+    textTransform: "capitalize",
+  },
 });
+
+const parseWorldHighscores = (data) => {
+  const highscores = data.highscores.data;
+
+  if (!Array.isArray(highscores)) return [];
+
+  return highscores.map((char) => {
+    char.server = data.highscores.world;
+    return char;
+  });
+};
 
 const Index = () => {
   const [worlds, setWorlds] = useState([]);
   const [currentWorld, setCurrentWorld] = useState(ALL_WORLDS);
   const [currentSkillType, setCurrentSkillType] = useState(skillTypes[0]);
   const [currentVocation, setCurrentVocation] = useState(vocations[0]);
-  const [dataToDisplay, setDataToDisplay] = useState([]);
+  const [characters, setCharacters] = useState([]);
   const [cache, setCache] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,10 +96,10 @@ const Index = () => {
     const getHighscores = async () => {
       if (!worlds.length) return;
       const filterId = `${currentWorld}-${currentSkillType}-${currentVocation}`;
-      const cachedData = cache[filterId];
-      if (cachedData) {
+      const cachedCharacters = cache[filterId];
+      if (cachedCharacters) {
         console.log("data cached!!");
-        setDataToDisplay(cachedData);
+        setCharacters(cachedCharacters);
         return;
       }
 
@@ -103,25 +117,11 @@ const Index = () => {
         console.log("---------");
         console.log(data);
         console.log("---------");
-        highscores = data
-          .map(({ data }, i) => {
-            const highscores = data.highscores.data;
-
-            if (!Array.isArray(highscores)) return [];
-
-            return highscores.map((char) => {
-              char.server = worlds[i].name;
-              return char;
-            });
-          })
-          .flat();
+        highscores = data.map(({ data }) => parseWorldHighscores(data)).flat();
       } else {
         const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
         const { data } = await axios.get(url);
-        highscores = data.highscores.data.map((char) => {
-          char.server = data.highscores.world;
-          return char;
-        });
+        highscores = parseWorldHighscores(data);
       }
       const orderedHighscores = highscores.sort((a, b) => {
         if (a[pointsOrLevel] > b[pointsOrLevel]) {
@@ -131,13 +131,15 @@ const Index = () => {
         }
         return 0;
       });
-      setDataToDisplay(orderedHighscores);
+      setCharacters(orderedHighscores);
       setCache((prev) => {
         prev[filterId] = highscores;
         return prev;
       });
       setIsLoading(false);
-      tableRef.current.scrollTop = 0;
+      if (tableRef.current) {
+        tableRef.current.scrollTop = 0;
+      }
     };
     getHighscores();
   }, [worlds, currentWorld, currentSkillType, currentVocation]);
@@ -206,30 +208,31 @@ const Index = () => {
               <TableRow selected>
                 <TableCell>Rank</TableCell>
                 <TableCell>Name</TableCell>
-                <TableCell>{pointsOrLevel}</TableCell>
+                <TableCell className={classes.capitalize}>
+                  {pointsOrLevel}
+                </TableCell>
                 <TableCell>Vocation</TableCell>
                 <TableCell>Server</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* maby apply filters here??*/}
-              {dataToDisplay.slice(0, 300).map((data, i) => (
-                <TableRow key={`${data.name}_${data.level}_${i}`} hover>
+              {characters.slice(0, 300).map((char, i) => (
+                <TableRow key={`${char.name}_${char.level}_${i}`} hover>
                   <TableCell className={classes.bold}>{i + 1}</TableCell>
                   <TableCell>
                     <Link
                       href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
-                        data.name
+                        char.name
                       )}`}
                       target="_blank"
                       color="secondary"
                     >
-                      {data.name}
+                      {char.name}
                     </Link>
                   </TableCell>
-                  <TableCell>{data[pointsOrLevel]}</TableCell>
-                  <TableCell>{data.voc}</TableCell>
-                  <TableCell>{data.server}</TableCell>
+                  <TableCell>{char[pointsOrLevel]}</TableCell>
+                  <TableCell>{char.voc}</TableCell>
+                  <TableCell>{char.server}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
