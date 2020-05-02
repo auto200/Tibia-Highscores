@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import MaterialUiTheme from "../contexts/MaterialUiTheme";
 import { makeStyles } from "@material-ui/styles";
@@ -36,6 +36,9 @@ const useStyles = makeStyles({
   bold: {
     fontWeight: "bold",
   },
+  contianer: {
+    maxHeight: "100vh",
+  },
 });
 
 const Index = () => {
@@ -46,6 +49,8 @@ const Index = () => {
   const [dataToDisplay, setDataToDisplay] = useState([]);
   const [cache, setCache] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const tableRef = useRef(null);
 
   const classes = useStyles();
   const pointsNotLevel =
@@ -80,60 +85,62 @@ const Index = () => {
         console.log("data cached!!");
         setDataToDisplay(cachedData);
         return;
-      }
-      setIsLoading(true);
-      console.log("downloading new data....");
-      if (currentWorld === ALL_WORLDS) {
-        console.log(worlds);
-        const promises = worlds.map(({ name }) => {
-          const url = `https://api.tibiadata.com/v2/highscores/${name}/${currentSkillType}/${currentVocation}.json`;
-          return axios.get(url);
-        });
-        const data = await axios.all(promises);
-        console.log("---------");
-        console.log(data);
-        console.log("---------");
-        const allServerHighscores = data
-          .map(({ data }, i) => {
-            const highscores = data.highscores.data;
-
-            if (!Array.isArray(highscores)) return [];
-
-            return highscores.map((char) => {
-              char.server = worlds[i].name;
-              return char;
-            });
-          })
-          .flat()
-          .sort((a, b) => {
-            //propably change this to current filter (ascending/descending)
-            if (a.level > b.level) {
-              return -1;
-            }
-            if (a.level < b.level) {
-              return 1;
-            }
-            return 0;
-          });
-        setDataToDisplay(allServerHighscores);
-        setCache((prev) => {
-          prev[filterId] = allServerHighscores;
-          return prev;
-        });
       } else {
-        const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
-        const { data } = await axios.get(url);
-        const highscores = data.highscores.data.map((char) => {
-          char.server = data.highscores.world;
-          return char;
-        });
-        setDataToDisplay(highscores);
-        setCache((prev) => {
-          prev[filterId] = highscores;
-          return prev;
-        });
+        setIsLoading(true);
+        console.log("downloading new data....");
+        if (currentWorld === ALL_WORLDS) {
+          console.log(worlds);
+          const promises = worlds.map(({ name }) => {
+            const url = `https://api.tibiadata.com/v2/highscores/${name}/${currentSkillType}/${currentVocation}.json`;
+            return axios.get(url);
+          });
+          const data = await axios.all(promises);
+          console.log("---------");
+          console.log(data);
+          console.log("---------");
+          const allServerHighscores = data
+            .map(({ data }, i) => {
+              const highscores = data.highscores.data;
+
+              if (!Array.isArray(highscores)) return [];
+
+              return highscores.map((char) => {
+                char.server = worlds[i].name;
+                return char;
+              });
+            })
+            .flat()
+            .sort((a, b) => {
+              //propably change this to current filter (ascending/descending)
+              if (a.level > b.level) {
+                return -1;
+              }
+              if (a.level < b.level) {
+                return 1;
+              }
+              return 0;
+            });
+          setDataToDisplay(allServerHighscores);
+          setCache((prev) => {
+            prev[filterId] = allServerHighscores;
+            return prev;
+          });
+        } else {
+          const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
+          const { data } = await axios.get(url);
+          const highscores = data.highscores.data.map((char) => {
+            char.server = data.highscores.world;
+            return char;
+          });
+          setDataToDisplay(highscores);
+          setCache((prev) => {
+            prev[filterId] = highscores;
+            return prev;
+          });
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
+      tableRef.current.scrollTop = 0;
     };
     getHighscores();
   }, [worlds, currentWorld, currentSkillType, currentVocation]);
@@ -143,47 +150,60 @@ const Index = () => {
       {isLoading && <Loading />}
       <div>
         <div style={{ display: "flex", justifyContent: "space-around" }}>
-          <Select
-            labelId="World"
-            value={currentWorld}
-            native={true}
-            onChange={(e) => setCurrentWorld(e.target.value)}
-            key={worlds.length}
-          >
-            <option value={ALL_WORLDS}>all</option>
-            {worlds.map(({ name }) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={currentSkillType}
-            onChange={(e) => setCurrentSkillType(e.target.value)}
-            labelId="Skill"
-            native={true}
-          >
-            {skillTypes.map((skill) => (
-              <option key={skill} value={skill}>
-                {skill}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={currentVocation}
-            onChange={(e) => setCurrentVocation(e.target.value)}
-            labelId="Vocation"
-            native={true}
-          >
-            {vocations.map((vocation) => (
-              <option key={vocation} value={vocation}>
-                {vocation}
-              </option>
-            ))}
-          </Select>
+          <label>
+            World:{" "}
+            <Select
+              labelId="World"
+              value={currentWorld}
+              native={true}
+              onChange={(e) => setCurrentWorld(e.target.value)}
+              key={worlds.length}
+            >
+              <option value={ALL_WORLDS}>all</option>
+              {worlds.map(({ name }) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label>
+            Skill:{" "}
+            <Select
+              value={currentSkillType}
+              onChange={(e) => setCurrentSkillType(e.target.value)}
+              labelId="Skill"
+              native={true}
+            >
+              {skillTypes.map((skill) => (
+                <option key={skill} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label>
+            Vocation:{" "}
+            <Select
+              value={currentVocation}
+              onChange={(e) => setCurrentVocation(e.target.value)}
+              labelId="Vocation"
+              native={true}
+            >
+              {vocations.map((vocation) => (
+                <option key={vocation} value={vocation}>
+                  {vocation}
+                </option>
+              ))}
+            </Select>
+          </label>
         </div>
-        <TableContainer component={Paper}>
-          <Table stickyHeader={true}>
+        <TableContainer
+          component={Paper}
+          className={classes.contianer}
+          ref={tableRef}
+        >
+          <Table stickyHeader>
             <caption>display area</caption>
             <TableHead>
               <TableRow selected>
@@ -195,6 +215,7 @@ const Index = () => {
               </TableRow>
             </TableHead>
             <TableBody>
+              {/* maby apply filters here??*/}
               {dataToDisplay.slice(0, 300).map((data, i) => (
                 <TableRow key={`${data.name}_${data.level}_${i}`} hover>
                   <TableCell className={classes.bold}>{i + 1}</TableCell>
