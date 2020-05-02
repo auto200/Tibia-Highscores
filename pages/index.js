@@ -49,14 +49,14 @@ const Index = () => {
   const [dataToDisplay, setDataToDisplay] = useState([]);
   const [cache, setCache] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [orderBy, setOrderBy] = useState("level");
-  const [orderDirection, setOrderDirection] = useState("desc");
 
   const tableRef = useRef(null);
 
   const classes = useStyles();
-  const pointsNotLevel =
-    currentSkillType === "achievements" || currentSkillType === "loyalty";
+  const pointsOrLevel =
+    currentSkillType === "achievements" || currentSkillType === "loyalty"
+      ? "points"
+      : "level";
 
   useEffect(() => {
     const getWorlds = async () => {
@@ -123,7 +123,15 @@ const Index = () => {
           return char;
         });
       }
-      setDataToDisplay(highscores);
+      const orderedHighscores = highscores.sort((a, b) => {
+        if (a[pointsOrLevel] > b[pointsOrLevel]) {
+          return -1;
+        } else if (a[pointsOrLevel] < b[pointsOrLevel]) {
+          return 1;
+        }
+        return 0;
+      });
+      setDataToDisplay(orderedHighscores);
       setCache((prev) => {
         prev[filterId] = highscores;
         return prev;
@@ -133,24 +141,6 @@ const Index = () => {
     };
     getHighscores();
   }, [worlds, currentWorld, currentSkillType, currentVocation]);
-
-  useEffect(() => {
-    let orderedData = [];
-    if (orderDirection === "asc") {
-      orderedData = dataToDisplay.sort((a, b) => {
-        if (a[orderBy] < b[orderBy]) return -1;
-        else if (a[orderBy] > b[orderBy]) return 1;
-        return 0;
-      });
-    } else if (orderDirection === "desc") {
-      orderedData = dataToDisplay.sort((a, b) => {
-        if (a[orderBy] > b[orderBy]) return -1;
-        else if (a[orderBy] < b[orderBy]) return 1;
-        return 0;
-      });
-    }
-    setDataToDisplay(orderedData);
-  }, [dataToDisplay, orderBy, orderDirection]);
 
   return (
     <MaterialUiTheme>
@@ -212,12 +202,11 @@ const Index = () => {
           ref={tableRef}
         >
           <Table stickyHeader>
-            <caption>display area</caption>
             <TableHead>
               <TableRow selected>
                 <TableCell>Rank</TableCell>
                 <TableCell>Name</TableCell>
-                <TableCell>{pointsNotLevel ? "Points" : "Level"}</TableCell>
+                <TableCell>{pointsOrLevel}</TableCell>
                 <TableCell>Vocation</TableCell>
                 <TableCell>Server</TableCell>
               </TableRow>
@@ -238,9 +227,7 @@ const Index = () => {
                       {data.name}
                     </Link>
                   </TableCell>
-                  <TableCell>
-                    {pointsNotLevel ? data.points : data.level}
-                  </TableCell>
+                  <TableCell>{data[pointsOrLevel]}</TableCell>
                   <TableCell>{data.voc}</TableCell>
                   <TableCell>{data.server}</TableCell>
                 </TableRow>
@@ -253,14 +240,3 @@ const Index = () => {
   );
 };
 export default Index;
-
-// .sort((a, b) => {
-//   //propably change this to current filter (ascending/descending)
-//   if (a.level > b.level) {
-//     return -1;
-//   }
-//   if (a.level < b.level) {
-//     return 1;
-//   }
-//   return 0;
-// });
