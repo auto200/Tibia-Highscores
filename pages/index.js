@@ -31,6 +31,14 @@ const skillTypes = [
   "loyalty",
 ];
 const vocations = ["all", "druid", "knight", "paladin", "sorcerer"];
+const tournamentWorlds = [
+  "Endebra",
+  "Endera",
+  "Endura",
+  "Velocera",
+  "Velocibra",
+  "Velocita",
+];
 
 const useStyles = makeStyles({
   bold: {
@@ -78,7 +86,10 @@ const Index = () => {
         "https://api.tibiadata.com/v2/worlds.json"
       );
       const worlds = data.worlds.allworlds;
-      const sortedWorlds = worlds.sort((a, b) => {
+      const filtredWorlds = worlds.filter(
+        (world) => !tournamentWorlds.includes(world.name)
+      );
+      const sortedWorlds = filtredWorlds.sort((a, b) => {
         if (a.name < b.name) {
           return -1;
         }
@@ -230,7 +241,15 @@ const Index = () => {
                       {char.name}
                     </Link>
                   </TableCell>
-                  <TableCell>{char[pointsOrLevel]}</TableCell>
+                  <TableCell
+                    title={
+                      currentSkillType === skillTypes[0]
+                        ? char.points.toLocaleString()
+                        : undefined
+                    }
+                  >
+                    {char[pointsOrLevel]}
+                  </TableCell>
                   <TableCell>{char.voc}</TableCell>
                   <TableCell>{char.server}</TableCell>
                 </TableRow>
