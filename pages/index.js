@@ -58,8 +58,7 @@ const parseWorldHighscores = (data) => {
   if (!Array.isArray(highscores)) return [];
 
   return highscores.map((char) => {
-    char.server = data.highscores.world;
-    return char;
+    return { ...char, server: data.highscores.world };
   });
 };
 
