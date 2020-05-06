@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import MaterialUiTheme from "../contexts/MaterialUiTheme";
+import Router from "next/router";
 import { makeStyles } from "@material-ui/styles";
-import CssBaseline from "@material-ui/core/CssBaseline";
 import {
   TableContainer,
   Table,
@@ -16,29 +14,13 @@ import {
 } from "@material-ui/core";
 import Loading from "../components/Loading";
 
-const ALL_WORLDS = "ALL_WORLDS";
-const skillTypes = [
-  "experience",
-  "magic",
-  "shielding",
-  "distance",
-  "sword",
-  "club",
-  "axe",
-  "fist",
-  "fishing",
-  "achievements",
-  "loyalty",
-];
-const vocations = ["all", "druid", "knight", "paladin", "sorcerer"];
-const tournamentWorlds = [
-  "Endebra",
-  "Endera",
-  "Endura",
-  "Velocera",
-  "Velocibra",
-  "Velocita",
-];
+import { getRegularWorlds } from "../helpers/getRegularWorlds";
+import { getWorldHighscores } from "../helpers/getWorldHighscores";
+import { getAllWorldsHighscores } from "../helpers/getAllWorldsHighscores";
+import { sortArrayByObjectProperty } from "../helpers/sortArrayByObjectProperty";
+import { skillTypes, vocations } from "../constants";
+
+const ALL_WORLDS = "all";
 
 const useStyles = makeStyles({
   bold: {
@@ -52,212 +34,163 @@ const useStyles = makeStyles({
   },
 });
 
-const parseWorldHighscores = (data) => {
-  const highscores = data.highscores.data;
-
-  if (!Array.isArray(highscores)) return [];
-
-  return highscores.map((char) => {
-    return { ...char, server: data.highscores.world };
-  });
-};
-
-const Index = () => {
-  const [worlds, setWorlds] = useState([]);
-  const [currentWorld, setCurrentWorld] = useState(ALL_WORLDS);
-  const [currentSkillType, setCurrentSkillType] = useState(skillTypes[0]);
-  const [currentVocation, setCurrentVocation] = useState(vocations[0]);
-  const [characters, setCharacters] = useState([]);
-  const [cache, setCache] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-
+const Index = ({ worlds, characters }) => {
+  const [world, setWorld] = useState(ALL_WORLDS);
+  const [skill, setSkill] = useState(skillTypes[0]);
+  const [vocation, setVocation] = useState(vocations[0]);
+  // const [isLoading, setIsLoading] = useState(false);
   const tableRef = useRef(null);
 
   const classes = useStyles();
   const pointsOrLevel =
-    currentSkillType === "achievements" || currentSkillType === "loyalty"
-      ? "points"
-      : "level";
+    skill === "achievements" || skill === "loyalty" ? "points" : "level";
 
   useEffect(() => {
-    const getWorlds = async () => {
-      const { data } = await axios.get(
-        "https://api.tibiadata.com/v2/worlds.json"
-      );
-      const worlds = data.worlds.allworlds;
-      const filtredWorlds = worlds.filter(
-        (world) => !tournamentWorlds.includes(world.name)
-      );
-      const sortedWorlds = filtredWorlds.sort((a, b) => {
-        if (a.name < b.name) {
-          return -1;
-        }
-        if (a.name > b.name) {
-          return 1;
-        }
-        return 0;
-      });
-      setWorlds(sortedWorlds);
-    };
-    getWorlds();
-  }, []);
-
-  useEffect(() => {
-    const getHighscores = async () => {
-      if (!worlds.length) return;
-      const filterId = `${currentWorld}-${currentSkillType}-${currentVocation}`;
-      const cachedCharacters = cache[filterId];
-      if (cachedCharacters) {
-        console.log("data cached!!");
-        setCharacters(cachedCharacters);
-        return;
-      }
-
-      let highscores = [];
-      setIsLoading(true);
-      console.log("downloading new data....");
-
-      if (currentWorld === ALL_WORLDS) {
-        console.log(worlds);
-        const promises = worlds.map(({ name }) => {
-          const url = `https://api.tibiadata.com/v2/highscores/${name}/${currentSkillType}/${currentVocation}.json`;
-          return axios.get(url);
-        });
-        const data = await axios.all(promises);
-        console.log("---------");
-        console.log(data);
-        console.log("---------");
-        highscores = data.map(({ data }) => parseWorldHighscores(data)).flat();
-      } else {
-        const url = `https://api.tibiadata.com/v2/highscores/${currentWorld}/${currentSkillType}/${currentVocation}.json`;
-        const { data } = await axios.get(url);
-        highscores = parseWorldHighscores(data);
-      }
-      const orderedHighscores = highscores.sort((a, b) => {
-        if (a[pointsOrLevel] > b[pointsOrLevel]) {
-          return -1;
-        } else if (a[pointsOrLevel] < b[pointsOrLevel]) {
-          return 1;
-        }
-        return 0;
-      });
-      setCharacters(orderedHighscores);
-      setCache((prev) => {
-        prev[filterId] = highscores;
-        return prev;
-      });
-      setIsLoading(false);
-      if (tableRef.current) {
-        tableRef.current.scrollTop = 0;
-      }
-    };
-    getHighscores();
-  }, [worlds, currentWorld, currentSkillType, currentVocation]);
+    Router.push(`/?world=${world}&skill=${skill}&vocation=${vocation}`);
+  }, [world, skill, vocation]);
 
   return (
-    <MaterialUiTheme>
-      <CssBaseline />
-      {isLoading && <Loading />}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-around" }}>
-          <label>
-            World:{" "}
-            <Select
-              labelId="World"
-              value={currentWorld}
-              native={true}
-              onChange={(e) => setCurrentWorld(e.target.value)}
-              key={worlds.length}
-            >
-              <option value={ALL_WORLDS}>all</option>
-              {worlds.map(({ name }) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            Skill:{" "}
-            <Select
-              value={currentSkillType}
-              onChange={(e) => setCurrentSkillType(e.target.value)}
-              labelId="Skill"
-              native={true}
-            >
-              {skillTypes.map((skill) => (
-                <option key={skill} value={skill}>
-                  {skill}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            Vocation:{" "}
-            <Select
-              value={currentVocation}
-              onChange={(e) => setCurrentVocation(e.target.value)}
-              labelId="Vocation"
-              native={true}
-            >
-              {vocations.map((vocation) => (
-                <option key={vocation} value={vocation}>
-                  {vocation}
-                </option>
-              ))}
-            </Select>
-          </label>
-        </div>
-        <TableContainer
-          component={Paper}
-          className={classes.contianer}
-          ref={tableRef}
-        >
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow selected>
-                <TableCell>Rank</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell className={classes.capitalize}>
-                  {pointsOrLevel}
-                </TableCell>
-                <TableCell>Vocation</TableCell>
-                <TableCell>Server</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {characters.slice(0, 300).map((char, i) => (
-                <TableRow key={`${char.name}_${char.level}_${i}`} hover>
-                  <TableCell className={classes.bold}>{i + 1}</TableCell>
-                  <TableCell>
-                    <Link
-                      href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
-                        char.name
-                      )}`}
-                      target="_blank"
-                      color="secondary"
-                    >
-                      {char.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell
-                    title={
-                      currentSkillType === skillTypes[0]
-                        ? char.points.toLocaleString()
-                        : undefined
-                    }
-                  >
-                    {char[pointsOrLevel]}
-                  </TableCell>
-                  <TableCell>{char.voc}</TableCell>
-                  <TableCell>{char.server}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+    // <>
+    //   {isLoading && <Loading />}
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-around" }}>
+        <label>
+          World:{" "}
+          <Select
+            labelId="World"
+            value={world}
+            native={true}
+            onChange={(e) => setWorld(e.target.value)}
+            key={worlds.length}
+          >
+            <option value={ALL_WORLDS}>all</option>
+            {worlds.map(({ name }) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label>
+          Skill:{" "}
+          <Select
+            value={skill}
+            onChange={(e) => setSkill(e.target.value)}
+            labelId="Skill"
+            native={true}
+          >
+            {skillTypes.map((skill) => (
+              <option key={skill} value={skill}>
+                {skill}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label>
+          Vocation:{" "}
+          <Select
+            value={vocation}
+            onChange={(e) => setVocation(e.target.value)}
+            labelId="Vocation"
+            native={true}
+          >
+            {vocations.map((vocation) => (
+              <option key={vocation} value={vocation}>
+                {vocation}
+              </option>
+            ))}
+          </Select>
+        </label>
       </div>
-    </MaterialUiTheme>
+      <TableContainer
+        component={Paper}
+        className={classes.contianer}
+        ref={tableRef}
+      >
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow selected>
+              <TableCell>Rank</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell className={classes.capitalize}>
+                {pointsOrLevel}
+              </TableCell>
+              <TableCell>Vocation</TableCell>
+              <TableCell>Server</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {characters.slice(0, 300).map((char, i) => (
+              <TableRow key={`${char.name}_${char.level}_${i}`} hover>
+                <TableCell className={classes.bold}>{i + 1}</TableCell>
+                <TableCell>
+                  <Link
+                    href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
+                      char.name
+                    )}`}
+                    target="_blank"
+                    color="secondary"
+                  >
+                    {char.name}
+                  </Link>
+                </TableCell>
+                <TableCell
+                  title={
+                    skill === skillTypes[0]
+                      ? char.points.toLocaleString()
+                      : undefined
+                  }
+                >
+                  {char[pointsOrLevel]}
+                </TableCell>
+                <TableCell>{char.voc}</TableCell>
+                <TableCell>{char.server}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
+    // </>
   );
 };
 export default Index;
+
+Index.getInitialProps = async ({ query, res }) => {
+  const { world, skill, vocation } = query;
+  const worlds = await getRegularWorlds();
+  const defaultPath = "/?world=all&skill=experience&vocation=all";
+  console.log(
+    !worlds.some(({ name }) => name === world),
+    world !== "all",
+    !skillTypes.includes(skill),
+    !vocations.includes(vocation)
+  );
+  if (
+    (!worlds.some(({ name }) => name === world) && world !== "all") ||
+    !skillTypes.includes(skill) ||
+    !vocations.includes(vocation)
+  ) {
+    if (res) {
+      res.writeHead(302, { Location: defaultPath });
+      res.end();
+    } else {
+      Router.push(defaultPath);
+    }
+    return {};
+  }
+
+  let characters = [];
+
+  if (world === "all") {
+    characters = await getAllWorldsHighscores(worlds, skill, vocation);
+  } else {
+    characters = await getWorldHighscores(world, skill, vocation);
+  }
+  const pointsOrLevel = characters[0].level ? "level" : "points";
+
+  return {
+    worlds,
+    characters: sortArrayByObjectProperty(characters, pointsOrLevel),
+  };
+};
