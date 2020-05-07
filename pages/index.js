@@ -139,7 +139,7 @@ const Index = ({ worlds, characters }) => {
                 <TableCell
                   title={
                     skill === skillTypes[0]
-                      ? char.points.toLocaleString()
+                      ? char?.points?.toLocaleString()
                       : undefined
                   }
                 >
@@ -162,12 +162,7 @@ Index.getInitialProps = async ({ query, res }) => {
   const { world, skill, vocation } = query;
   const worlds = await getRegularWorlds();
   const defaultPath = "/?world=all&skill=experience&vocation=all";
-  console.log(
-    !worlds.some(({ name }) => name === world),
-    world !== "all",
-    !skillTypes.includes(skill),
-    !vocations.includes(vocation)
-  );
+
   if (
     (!worlds.some(({ name }) => name === world) && world !== "all") ||
     !skillTypes.includes(skill) ||
