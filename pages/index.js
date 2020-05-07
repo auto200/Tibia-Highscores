@@ -14,10 +14,12 @@ import {
 } from "@material-ui/core";
 import Loading from "../components/Loading";
 
-import { getRegularWorlds } from "../helpers/getRegularWorlds";
-import { getWorldHighscores } from "../helpers/getWorldHighscores";
-import { getAllWorldsHighscores } from "../helpers/getAllWorldsHighscores";
-import { sortArrayByObjectProperty } from "../helpers/sortArrayByObjectProperty";
+import {
+  getRegularWorlds,
+  getWorldHighscores,
+  getAllWorldsHighscores,
+  sortArrayByObjectProperty,
+} from "../helpers";
 import { skillTypes, vocations } from "../constants";
 
 const ALL_WORLDS = "all";
