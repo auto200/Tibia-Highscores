@@ -39,7 +39,6 @@ const Index = ({ worlds = [], characters = [] }) => {
   const [world, setWorld] = useState(ALL_WORLDS);
   const [skill, setSkill] = useState(skillTypes[0]);
   const [vocation, setVocation] = useState(vocations[0]);
-  // const [isLoading, setIsLoading] = useState(false);
   const tableRef = useRef(null);
 
   const classes = useStyles();
