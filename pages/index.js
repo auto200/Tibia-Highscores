@@ -12,6 +12,7 @@ import {
   Link,
   Paper,
 } from "@material-ui/core";
+import { GiWireframeGlobe } from "react-icons/gi";
 
 import {
   getRegularWorlds,
@@ -19,19 +20,38 @@ import {
   getAllWorldsHighscores,
   sortArrayByObjectProperty,
 } from "../helpers";
-import { skillTypes, vocations } from "../constants";
+import { skillTypes, vocations, skillIcons, vocationIcons } from "../constants";
 
 const ALL_WORLDS = "all";
 
 const useStyles = makeStyles({
+  wrapper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
   bold: {
     fontWeight: "bold",
   },
   contianer: {
     maxHeight: "100vh",
+    paddingBottom: "20px",
   },
   capitalize: {
     textTransform: "capitalize",
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    "& label": {
+      display: "flex",
+      alignItems: "center",
+      "& svg": {
+        marginRight: "3px",
+        marginLeft: "5px",
+        fontSize: "24px",
+      },
+    },
   },
 });
 
@@ -51,10 +71,10 @@ const Index = ({ worlds = [], characters = [] }) => {
   }, [world, skill, vocation]);
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-around" }}>
+    <div className={classes.wrapper}>
+      <div className={classes.header}>
         <label>
-          World:{" "}
+          <GiWireframeGlobe />
           <Select
             labelId="World"
             value={world}
@@ -71,7 +91,7 @@ const Index = ({ worlds = [], characters = [] }) => {
           </Select>
         </label>
         <label>
-          Skill:{" "}
+          {skillIcons[skill]}
           <Select
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
@@ -86,7 +106,7 @@ const Index = ({ worlds = [], characters = [] }) => {
           </Select>
         </label>
         <label>
-          Vocation:{" "}
+          {vocationIcons[vocation]}
           <Select
             value={vocation}
             onChange={(e) => setVocation(e.target.value)}

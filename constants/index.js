@@ -1,3 +1,21 @@
+import {
+  GiUpgrade,
+  GiPointyHat,
+  GiCheckedShield,
+  GiArcher,
+  GiBroadsword,
+  GiMaceHead,
+  GiBattleAxe,
+  GiMailedFist,
+  GiFishingPole,
+  GiAchievement,
+  GiRoyalLove,
+  GiWizardFace,
+  GiRobe,
+  GiBrutalHelm,
+  GiSpartan,
+  GiHighShot,
+} from "react-icons/gi";
 export const skillTypes = [
   "experience",
   "magic",
@@ -20,3 +38,24 @@ export const tournamentWorlds = [
   "Velocibra",
   "Velocita",
 ];
+
+export const skillIcons = {
+  experience: <GiUpgrade />,
+  magic: <GiPointyHat />,
+  shielding: <GiCheckedShield />,
+  distance: <GiHighShot />,
+  sword: <GiBroadsword />,
+  club: <GiMaceHead />,
+  axe: <GiBattleAxe />,
+  fist: <GiMailedFist />,
+  fishing: <GiFishingPole />,
+  achievements: <GiAchievement />,
+  loyalty: <GiRoyalLove />,
+};
+export const vocationIcons = {
+  all: <GiSpartan />,
+  druid: <GiRobe />,
+  knight: <GiBrutalHelm />,
+  paladin: <GiArcher />,
+  sorcerer: <GiWizardFace />,
+};
