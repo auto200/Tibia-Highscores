@@ -48,7 +48,8 @@ const Index = ({ worlds = [], characters = [] }) => {
     skill === "achievements" || skill === "loyalty" ? "points" : "level";
 
   useEffect(() => {
-    Router.push(`/?world=${world}&skill=${skill}&vocation=${vocation}`);
+    const search = `/?world=${world}&skill=${skill}&vocation=${vocation}`;
+    if ("/" + window.location.search !== search) Router.push(search);
   }, [world, skill, vocation]);
 
   return (
