@@ -12,7 +12,6 @@ import {
   Link,
   Paper,
 } from "@material-ui/core";
-import Loading from "../components/Loading";
 
 import {
   getRegularWorlds,
@@ -53,8 +52,6 @@ const Index = ({ worlds = [], characters = [] }) => {
   }, [world, skill, vocation]);
 
   return (
-    // <>
-    //   {isLoading && <Loading />}
     <div>
       <div style={{ display: "flex", justifyContent: "space-around" }}>
         <label>
@@ -154,7 +151,6 @@ const Index = ({ worlds = [], characters = [] }) => {
         </Table>
       </TableContainer>
     </div>
-    // </>
   );
 };
 export default Index;
