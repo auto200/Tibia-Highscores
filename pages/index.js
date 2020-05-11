@@ -139,6 +139,7 @@ const Index = ({ worlds = [], characters = [] }) => {
             </TableRow>
           </TableHead>
           <TableBody>
+            {/*TO BE IMPLEMENTED: The idea is to start from 100 and load rows progressively */}
             {characters.slice(0, 300).map((char, i) => (
               <TableRow key={`${char.name}_${char.level}_${i}`} hover>
                 <TableCell className={classes.bold}>{i + 1}</TableCell>
@@ -176,11 +177,13 @@ export default Index;
 
 Index.getInitialProps = async ({ query, res }) => {
   const { world, skill, vocation } = query;
+  //Worlds are fetched every time. Don't know how to cache it, cookie/localstorage?
+  //Ideally it should be called once per page reload, stored on the app level.
   const worlds = await getRegularWorlds();
   const defaultPath = "/?world=all&skill=experience&vocation=all";
 
   if (
-    (!worlds.some(({ name }) => name === world) && world !== "all") ||
+    (!worlds.some(({ name }) => name === world) && world !== ALL_WORLDS) ||
     !skillTypes.includes(skill) ||
     !vocations.includes(vocation)
   ) {
@@ -195,7 +198,7 @@ Index.getInitialProps = async ({ query, res }) => {
 
   let characters = [];
 
-  if (world === "all") {
+  if (world === ALL_WORLDS) {
     characters = await getAllWorldsHighscores(worlds, skill, vocation);
   } else {
     characters = await getWorldHighscores(world, skill, vocation);
