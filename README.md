@@ -1,6 +1,6 @@
 # Tibia Highscores
 
-DEMO 👉 https://tibiahighscores.auto200.eu
+DEMO 👉 https://tibia-highscores.now.sh/
 
 All skill highscores of all vocations from all tibian worlds, written in [Next.js](https://github.com/zeit/next.js/) with data powered by [TibiaData](https://tibiadata.com).
 
