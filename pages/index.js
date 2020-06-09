@@ -209,7 +209,8 @@ Index.getInitialProps = async ({ query, res }) => {
   } else {
     characters = await getWorldHighscores(world, skill, vocation);
   }
-  const property = !!characters[0].level ? "level" : "points";
+  const property =
+    skill === "achievements" || skill === "loyalty" ? "points" : "level";
 
   return {
     initialWorld: world,
