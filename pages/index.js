@@ -55,10 +55,16 @@ const useStyles = makeStyles({
   },
 });
 
-const Index = ({ worlds = [], characters = [] }) => {
-  const [world, setWorld] = useState(ALL_WORLDS);
-  const [skill, setSkill] = useState(skillTypes[0]);
-  const [vocation, setVocation] = useState(vocations[0]);
+const Index = ({
+  initialWorld = ALL_WORLDS,
+  initialSkill = skillTypes[0],
+  initialVocation = vocations[0],
+  worlds = [],
+  characters = [],
+}) => {
+  const [world, setWorld] = useState(initialWorld);
+  const [skill, setSkill] = useState(initialSkill);
+  const [vocation, setVocation] = useState(initialVocation);
   const tableRef = useRef(null);
 
   const classes = useStyles();
@@ -203,10 +209,13 @@ Index.getInitialProps = async ({ query, res }) => {
   } else {
     characters = await getWorldHighscores(world, skill, vocation);
   }
-  const pointsOrLevel = characters[0].level ? "level" : "points";
+  const property = !!characters[0].level ? "level" : "points";
 
   return {
+    initialWorld: world,
+    initialSkill: skill,
+    initialVocation: vocation,
     worlds,
-    characters: sortArrayByObjectProperty(characters, pointsOrLevel),
+    characters: sortArrayByObjectProperty(characters, property),
   };
 };
