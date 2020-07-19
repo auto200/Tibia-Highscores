@@ -1,5 +1,7 @@
 # Tibia Highscores
 
+### NOTE as today (19/07/2020) Vercel ~~broke~~ changed? something and live demo version does not work 🤔 Locally everything is in place 👍
+
 DEMO 👉 https://tibia-highscores.now.sh/
 
 <img src="preview.gif" alt="preview" width="450px">
@@ -8,7 +10,7 @@ All skill highscores of all vocations from all tibian worlds, written in [Next.j
 
 ## Prerequisites
 
-Written and tested on [Node.js](https://nodejs.org) version 12.16.3
+Written and tested with [Node.js](https://nodejs.org) version 14.3.0
 
 ## Setup
 
