@@ -169,8 +169,8 @@ const Index = ({
                 >
                   {char[pointsOrLevel]}
                 </TableCell>
-                <TableCell>{char.voc}</TableCell>
-                <TableCell>{char.server}</TableCell>
+                <TableCell>{char.vocation}</TableCell>
+                <TableCell>{char.world}</TableCell>
               </TableRow>
             ))}
           </TableBody>

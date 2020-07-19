@@ -17,11 +17,7 @@ export const getWorldHighscores = async (world, skill, vocation) => {
 
   if (!Array.isArray(highscores)) return [];
 
-  const parsedHighscores = highscores.map((char) => {
-    return { ...char, server: data.highscores.world };
-  });
-
-  return parsedHighscores;
+  return highscores;
 };
 
 export const getAllWorldsHighscores = async (worlds, skill, vocation) => {
