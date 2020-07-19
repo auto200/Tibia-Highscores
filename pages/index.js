@@ -18,7 +18,6 @@ import {
   getRegularWorlds,
   getWorldHighscores,
   getAllWorldsHighscores,
-  sortArrayByObjectProperty,
 } from "../helpers";
 import { skillTypes, vocations, skillIcons, vocationIcons } from "../constants";
 
@@ -217,6 +216,6 @@ Index.getInitialProps = async ({ query, res }) => {
     initialSkill: skill,
     initialVocation: vocation,
     worlds,
-    characters: sortArrayByObjectProperty(characters, property),
+    characters: characters.sort((a, b) => b[property] - a[property]),
   };
 };
