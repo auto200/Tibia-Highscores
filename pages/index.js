@@ -13,15 +13,15 @@ import {
   Paper,
 } from "@material-ui/core";
 import { GiWireframeGlobe } from "react-icons/gi";
-
+import { fetchRegularWorlds, fetchHighscores } from "../helpers";
 import {
-  getRegularWorlds,
-  getWorldHighscores,
-  getAllWorldsHighscores,
-} from "../helpers";
-import { skillTypes, vocations, skillIcons, vocationIcons } from "../constants";
-
-const ALL_WORLDS = "all";
+  skillTypes,
+  vocations,
+  skillIcons,
+  vocationIcons,
+  ALL_WORLDS,
+  DEFAULT_PATH,
+} from "../constants";
 
 const useStyles = makeStyles({
   wrapper: {
@@ -53,6 +53,17 @@ const useStyles = makeStyles({
     },
   },
 });
+const getPropertyName = (skill) => {
+  switch (skill) {
+    case "level":
+      return "level";
+    case "loyalty":
+    case "achievements":
+      return "points";
+    default:
+      return "value";
+  }
+};
 
 const Index = ({
   initialWorld = ALL_WORLDS,
@@ -67,8 +78,6 @@ const Index = ({
   const tableRef = useRef(null);
 
   const classes = useStyles();
-  const pointsOrLevel =
-    skill === "achievements" || skill === "loyalty" ? "points" : "level";
 
   useEffect(() => {
     const search = `/?world=${world}&skill=${skill}&vocation=${vocation}`;
@@ -137,7 +146,9 @@ const Index = ({
               <TableCell>Rank</TableCell>
               <TableCell>Name</TableCell>
               <TableCell className={classes.capitalize}>
-                {pointsOrLevel}
+                {skill === "achievements" || skill === "loyalty"
+                  ? "points"
+                  : "level"}
               </TableCell>
               <TableCell>Vocation</TableCell>
               <TableCell>Server</TableCell>
@@ -161,12 +172,12 @@ const Index = ({
                 </TableCell>
                 <TableCell
                   title={
-                    skill === skillTypes[0]
-                      ? char?.points?.toLocaleString("en")
+                    skill === "level"
+                      ? char?.value?.toLocaleString("en")
                       : undefined
                   }
                 >
-                  {char[pointsOrLevel]}
+                  {char[getPropertyName(skill)]}
                 </TableCell>
                 <TableCell>{char.vocation}</TableCell>
                 <TableCell>{char.world}</TableCell>
@@ -184,8 +195,7 @@ Index.getInitialProps = async ({ query, res }) => {
   const { world, skill, vocation } = query;
   //Worlds are fetched every time. Don't know how to cache it, cookie/localstorage?
   //Ideally it should be called once per page reload, stored on the app level.
-  const worlds = await getRegularWorlds();
-  const defaultPath = "/?world=all&skill=experience&vocation=all";
+  const worlds = await fetchRegularWorlds();
 
   if (
     (!worlds.some(({ name }) => name === world) && world !== ALL_WORLDS) ||
@@ -193,29 +203,21 @@ Index.getInitialProps = async ({ query, res }) => {
     !vocations.includes(vocation)
   ) {
     if (res) {
-      res.writeHead(302, { Location: defaultPath });
+      res.writeHead(302, { Location: DEFAULT_PATH });
       res.end();
     } else {
-      Router.push(defaultPath);
+      Router.push(DEFAULT_PATH);
     }
     return {};
   }
 
-  let characters = [];
-
-  if (world === ALL_WORLDS) {
-    characters = await getAllWorldsHighscores(worlds, skill, vocation);
-  } else {
-    characters = await getWorldHighscores(world, skill, vocation);
-  }
-  const property =
-    skill === "achievements" || skill === "loyalty" ? "points" : "level";
+  const characters = await fetchHighscores(world, skill, vocation);
 
   return {
     initialWorld: world,
     initialSkill: skill,
     initialVocation: vocation,
     worlds,
-    characters: characters.sort((a, b) => b[property] - a[property]),
+    characters,
   };
 };

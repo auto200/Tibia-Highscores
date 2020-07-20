@@ -16,8 +16,12 @@ import {
   GiSpartan,
   GiHighShot,
 } from "react-icons/gi";
+
+export const ALL_WORLDS = "all";
+export const DEFAULT_PATH = "/?world=all&skill=level&vocation=all";
+
 export const skillTypes = [
-  "experience",
+  "level",
   "magic",
   "shielding",
   "distance",
