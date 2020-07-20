@@ -64,6 +64,16 @@ const getPropertyName = (skill) => {
       return "value";
   }
 };
+const getSecondarySkillColumnName = (skill) => {
+  switch (skill) {
+    case "achievements":
+    case "loyalty":
+    case "level":
+      return "Points";
+    default:
+      return "Skill Level";
+  }
+};
 
 const Index = ({
   initialWorld = ALL_WORLDS,
@@ -145,11 +155,8 @@ const Index = ({
             <TableRow selected>
               <TableCell>Rank</TableCell>
               <TableCell>Name</TableCell>
-              <TableCell className={classes.capitalize}>
-                {skill === "achievements" || skill === "loyalty"
-                  ? "points"
-                  : "level"}
-              </TableCell>
+              <TableCell>Level</TableCell>
+              <TableCell>{getSecondarySkillColumnName(skill)}</TableCell>
               <TableCell>Vocation</TableCell>
               <TableCell>Server</TableCell>
             </TableRow>
@@ -170,14 +177,11 @@ const Index = ({
                     {char.name}
                   </Link>
                 </TableCell>
-                <TableCell
-                  title={
-                    skill === "level"
-                      ? char?.value?.toLocaleString("en")
-                      : undefined
-                  }
-                >
-                  {char[getPropertyName(skill)]}
+                <TableCell>{char.level}</TableCell>
+                <TableCell>
+                  {skill === "level"
+                    ? char?.value?.toLocaleString("en")
+                    : char[getPropertyName(skill)]}
                 </TableCell>
                 <TableCell>{char.vocation}</TableCell>
                 <TableCell>{char.world}</TableCell>
