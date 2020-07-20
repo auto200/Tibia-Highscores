@@ -1,7 +1,5 @@
 # Tibia Highscores
 
-### NOTE as today (19/07/2020) Vercel ~~broke~~ changed? something and live demo version does not work 🤔 Locally everything is in place 👍
-
 DEMO 👉 https://tibia-highscores.now.sh/
 
 <img src="preview.gif" alt="preview" width="450px">
