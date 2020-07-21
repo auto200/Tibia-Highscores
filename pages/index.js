@@ -52,6 +52,13 @@ const useStyles = makeStyles({
       },
     },
   },
+  errorMessage: {
+    fontSize: "2.5rem",
+    marginTop: "2rem",
+    "& a": {
+      color: "cyan",
+    },
+  },
 });
 const getPropertyName = (skill) => {
   switch (skill) {
@@ -145,51 +152,60 @@ const Index = ({
           </Select>
         </label>
       </div>
-      <TableContainer
-        component={Paper}
-        className={classes.contianer}
-        ref={tableRef}
-      >
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow selected>
-              <TableCell>Rank</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Level</TableCell>
-              <TableCell>{getSecondarySkillColumnName(skill)}</TableCell>
-              <TableCell>Vocation</TableCell>
-              <TableCell>Server</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {/*TO BE IMPLEMENTED: The idea is to start from 100 and load rows progressively */}
-            {characters.slice(0, 300).map((char, i) => (
-              <TableRow key={`${char.name}_${char.level}_${i}`} hover>
-                <TableCell className={classes.bold}>{i + 1}</TableCell>
-                <TableCell>
-                  <Link
-                    href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
-                      char.name
-                    )}`}
-                    target="_blank"
-                    color="secondary"
-                  >
-                    {char.name}
-                  </Link>
-                </TableCell>
-                <TableCell>{char.level}</TableCell>
-                <TableCell>
-                  {skill === "level"
-                    ? char?.value?.toLocaleString("en")
-                    : char[getPropertyName(skill)]}
-                </TableCell>
-                <TableCell>{char.vocation}</TableCell>
-                <TableCell>{char.world}</TableCell>
+      {!worlds.length || !characters.length ? (
+        <div className={classes.errorMessage}>
+          <a href="https://tibiadata.com/" target="_blank">
+            Tibiadata
+          </a>{" "}
+          API propably has some problems, please try again later...
+        </div>
+      ) : (
+        <TableContainer
+          component={Paper}
+          className={classes.contianer}
+          ref={tableRef}
+        >
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow selected>
+                <TableCell>Rank</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Level</TableCell>
+                <TableCell>{getSecondarySkillColumnName(skill)}</TableCell>
+                <TableCell>Vocation</TableCell>
+                <TableCell>Server</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {/*TO BE IMPLEMENTED: The idea is to start from 100 and load rows progressively */}
+              {characters.slice(0, 300).map((char, i) => (
+                <TableRow key={`${char.name}_${char.level}_${i}`} hover>
+                  <TableCell className={classes.bold}>{i + 1}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(
+                        char.name
+                      )}`}
+                      target="_blank"
+                      color="secondary"
+                    >
+                      {char.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{char.level}</TableCell>
+                  <TableCell>
+                    {skill === "level"
+                      ? char?.value?.toLocaleString("en")
+                      : char[getPropertyName(skill)]}
+                  </TableCell>
+                  <TableCell>{char.vocation}</TableCell>
+                  <TableCell>{char.world}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </div>
   );
 };
@@ -199,7 +215,12 @@ Index.getInitialProps = async ({ query, res }) => {
   const { world, skill, vocation } = query;
   //Worlds are fetched every time. Don't know how to cache it, cookie/localstorage?
   //Ideally it should be called once per page reload, stored on the app level.
-  const worlds = await fetchRegularWorlds();
+  let worlds = [];
+  try {
+    worlds = await fetchRegularWorlds();
+  } catch (err) {
+    worlds = [{ name: "Cannot fetch worlds" }];
+  }
 
   if (
     (!worlds.some(({ name }) => name === world) && world !== ALL_WORLDS) ||
@@ -215,7 +236,10 @@ Index.getInitialProps = async ({ query, res }) => {
     return {};
   }
 
-  const characters = await fetchHighscores(world, skill, vocation);
+  let characters = [];
+  try {
+    characters = await fetchHighscores(world, skill, vocation);
+  } catch (err) {}
 
   return {
     initialWorld: world,
