@@ -157,7 +157,7 @@ const Index = ({
           <a href="https://tibiadata.com/" target="_blank">
             Tibiadata
           </a>{" "}
-          API propably has some problems, please try again later...
+          API probably has some problems, please try again later...
         </div>
       ) : (
         <TableContainer
