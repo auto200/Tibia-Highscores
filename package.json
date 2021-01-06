@@ -14,7 +14,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.11",
     "@material-ui/styles": "^4.9.10",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "next": "^9.4.4",
     "nprogress": "^0.2.0",
     "react": "^16.13.1",
